@@ -76,15 +76,6 @@
     padding-left: 25px;
   }
 
-  #retryMsg {
-    display: none;
-    text-align: center;
-    color: var(--neon);
-    text-shadow: 0 0 20px var(--neon);
-    font-size: 22px;
-    font-weight: bold;
-  }
-
   #playBtn, #backBtn {
     padding: 15px 40px;
     font-size: 22px;
@@ -247,9 +238,9 @@
 </head>
 <body>
 
-<!-- Device Selection -->
+<!-- Mode Selection -->
 <div id="modePage">
-  <h1>🎃 Choose Your Device 🎃</h1>
+  <h1>🎃 Dodge the Blocks - Halloween 🎃</h1>
   <button class="mode-btn" id="pcBtn">PC</button>
   <button class="mode-btn" id="mobileBtn">Mobile</button>
 </div>
@@ -258,7 +249,7 @@
 <div id="menuPage">
   <h1>🎃 Dodge the Blocks - Halloween 🎃</h1>
   <div id="infoBox">
-    <div id="retryMsg">💀 You lost! Try again! 💀</div>
+    <h2 style="text-align:center; color:var(--neon); text-shadow:0 0 15px var(--neon); margin-top:0;">🎃 Instructions 🎃</h2>
     <p>Hello Everyone!<br>
     Welcome to the first DBU Trello Event! Here’s how to play:</p>
     <ul>
@@ -317,7 +308,6 @@ const canvas=document.getElementById("gameCanvas");
 const ctx=canvas.getContext("2d");
 const popup=document.getElementById("popup");
 const popupMsg=document.getElementById("popupMsg");
-const retryMsg=document.getElementById("retryMsg");
 
 let player={x:180,y:440,width:40,height:20,speed:5};
 let blocks=[],greenBlocks=[],blueBlocks=[];
@@ -345,7 +335,6 @@ function startGame(){
   score=0;lives=1;gameOver=false;frame=0;
   blocks=[];greenBlocks=[];blueBlocks=[];
   baseBlockSpeed=4;speedMultiplier=1;
-  retryMsg.style.display="none";
   restartBtn.style.display="none";
   popup.style.display="none";
   gameLoop();
@@ -383,7 +372,7 @@ function detectCollision(){
     if(player.x<b.x+b.width&&player.x+player.width>b.x&&player.y<b.y+b.height&&player.y+player.height>b.y){
       blocks.splice(i,1);
       lives--;
-      if(lives<=0){gameOver=true;retryMsg.style.display="block";restartBtn.style.display="inline-block";}
+      if(lives<=0){gameOver=true;restartBtn.style.display="inline-block";}
     }
   });
   greenBlocks.forEach((g,i)=>{
