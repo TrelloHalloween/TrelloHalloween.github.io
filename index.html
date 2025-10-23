@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dodge the Blocks - Halloween</title>
+<link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --neon: #ff8c00;
+    --bg: #000;
+    --panel: #111;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--neon);
+    font-family: 'Bubblegum Sans', sans-serif;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  #modePage, #menuPage, #gamePage {
+    position: absolute;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  #modePage {
+    display: flex;
+    gap: 30px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    color: var(--neon);
+    text-shadow: 0 0 20px var(--neon);
+    margin-bottom: 20px;
+  }
+
+  .mode-btn {
+    width: 200px;
+    padding: 25px 0;
+    border: 2px solid var(--neon);
+    border-radius: 40px;
+    background: var(--panel);
+    color: var(--neon);
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 0 20px var(--neon);
+  }
+
+  .mode-btn:hover {
+    background: var(--neon);
+    color: #000;
+  }
+
+  #infoBox {
+    width: 420px;
+    background: var(--panel);
+    border: 2px solid var(--neon);
+    border-radius: 25px;
+    padding: 25px;
+    text-align: left;
+    color: var(--neon);
+    box-shadow: 0 0 25px var(--neon);
+  }
+
+  ul {
+    padding-left: 25px;
+  }
+
+  #retryMsg {
+    display: none;
+    text-align: center;
+    color: var(--neon);
+    text-shadow: 0 0 20px var(--neon);
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  #playBtn, #backBtn {
+    padding: 15px 40px;
+    font-size: 22px;
+    border: 2px solid var(--neon);
+    border-radius: 40px;
+    background: var(--panel);
+    color: var(--neon);
+    cursor: pointer;
+    box-shadow: 0 0 25px var(--neon);
+    transition: 0.3s;
+    margin-top: 10px;
+  }
+
+  #playBtn:hover, #backBtn:hover {
+    background: var(--neon);
+    color: #000;
+    box-shadow: 0 0 40px var(--neon);
+  }
+
+  /* Game Layout */
+  #gamePage {
+    flex-direction: column;
+    background: var(--bg);
+    justify-content: flex-start;
+    padding-top: 70px;
+  }
+
+  #topBar {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  #score {
+    font-size: 22px;
+    color: var(--neon);
+    font-weight: bold;
+    text-shadow: 0 0 20px var(--neon);
+    flex: 1;
+    text-align: center;
+  }
+
+  #gameBackBtn, #restartBtn {
+    padding: 10px 20px;
+    border: 2px solid var(--neon);
+    border-radius: 40px;
+    background: var(--panel);
+    color: var(--neon);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--neon);
+    transition: 0.3s;
+  }
+
+  #gameBackBtn:hover, #restartBtn:hover {
+    background: var(--neon);
+    color: #000;
+    box-shadow: 0 0 35px var(--neon);
+  }
+
+  #restartBtn {
+    display: none;
+  }
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 3px dashed var(--neon);
+    border-radius: 20px;
+    box-shadow: 0 0 30px var(--neon);
+    margin-top: 15px;
+  }
+
+  /* Winner Popup inside Canvas */
+  #popup {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: var(--neon);
+    padding: 25px;
+    border-radius: 18px;
+    border: 3px solid var(--neon);
+    box-shadow: 0 0 30px var(--neon);
+    text-align: center;
+    font-size: 20px;
+    z-index: 100;
+    width: 80%;
+    max-width: 340px;
+    max-height: 65%;
+    overflow: auto;
+  }
+
+  #popup button {
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: var(--panel);
+    color: var(--neon);
+    border: 2px solid var(--neon);
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  #popup button:hover {
+    background: var(--neon);
+    color: #000;
+    box-shadow: 0 0 25px var(--neon);
+  }
+
+  /* Mobile Controls */
+  #mobileControls {
+    display: none;
+    justify-content: center;
+    gap: 40px;
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .arrow-btn {
+    width: 80px;
+    height: 80px;
+    background: var(--panel);
+    border: 2px solid var(--neon);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px var(--neon);
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .arrow-btn:active {
+    background: var(--neon);
+    color: #000;
+  }
+
+  .arrow-svg {
+    width: 45px;
+    height: 45px;
+    fill: var(--neon);
+  }
+
+  .arrow-btn:active .arrow-svg {
+    fill: #000;
+  }
+</style>
+</head>
+<body>
+
+<!-- Device Selection -->
+<div id="modePage">
+  <h1>🎃 Choose Your Device 🎃</h1>
+  <button class="mode-btn" id="pcBtn">PC</button>
+  <button class="mode-btn" id="mobileBtn">Mobile</button>
+</div>
+
+<!-- Rules Menu -->
+<div id="menuPage">
+  <h1>🎃 Dodge the Blocks - Halloween 🎃</h1>
+  <div id="infoBox">
+    <div id="retryMsg">💀 You lost! Try again! 💀</div>
+    <p>Hello Everyone!<br>
+    Welcome to the first DBU Trello Event! Here’s how to play:</p>
+    <ul>
+      <li>Use the left and right arrow keys to move.</li>
+      <li>Avoid the falling red boxes—they cost you a life.</li>
+      <li>Green boxes give you 1 extra life.</li>
+      <li>Blue boxes give you 3 lives, but for 5 seconds you must survive the red boxes at 2x speed.</li>
+      <li><b>Please record your gameplay and when you win ping Bruce with the last 5–10 seconds of you winning.</b></li>
+    </ul>
+    <p>Good luck to everyone! Have fun and may the best player win!</p>
+  </div>
+  <button id="playBtn">Play Game</button>
+  <button id="backBtn">Back</button>
+</div>
+
+<!-- Game -->
+<div id="gamePage">
+  <div id="topBar">
+    <button id="gameBackBtn">Back</button>
+    <div id="score">Score: 0 | Lives: 1</div>
+    <button id="restartBtn" onclick="restartGame()">Restart</button>
+  </div>
+
+  <div style="position:relative;display:inline-block;margin-top:10px;">
+    <canvas id="gameCanvas" width="400" height="480"></canvas>
+    <div id="popup">
+      <p id="popupMsg"></p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Controls -->
+<div id="mobileControls">
+  <button class="arrow-btn" id="leftBtn">
+    <svg class="arrow-svg" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="arrow-btn" id="rightBtn">
+    <svg class="arrow-svg" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+</div>
+
+<script>
+const modePage=document.getElementById("modePage");
+const menuPage=document.getElementById("menuPage");
+const gamePage=document.getElementById("gamePage");
+const mobileControls=document.getElementById("mobileControls");
+const pcBtn=document.getElementById("pcBtn");
+const mobileBtn=document.getElementById("mobileBtn");
+const playBtn=document.getElementById("playBtn");
+const backBtn=document.getElementById("backBtn");
+const gameBackBtn=document.getElementById("gameBackBtn");
+const restartBtn=document.getElementById("restartBtn");
+const scoreDisplay=document.getElementById("score");
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
+const popup=document.getElementById("popup");
+const popupMsg=document.getElementById("popupMsg");
+const retryMsg=document.getElementById("retryMsg");
+
+let player={x:180,y:440,width:40,height:20,speed:5};
+let blocks=[],greenBlocks=[],blueBlocks=[];
+let keys={},score=0,lives=1,gameOver=false,frame=0;
+let baseBlockSpeed=4,speedMultiplier=1;
+const maxScore=2000;let isMobile=false;
+let moveLeft=false,moveRight=false;
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+pcBtn.onclick=()=>{isMobile=false;modePage.style.display="none";menuPage.style.display="flex";}
+mobileBtn.onclick=()=>{isMobile=true;modePage.style.display="none";menuPage.style.display="flex";}
+backBtn.onclick=()=>{menuPage.style.display="none";modePage.style.display="flex";}
+gameBackBtn.onclick=()=>{gamePage.style.display="none";mobileControls.style.display="none";menuPage.style.display="flex";}
+
+playBtn.onclick=()=>{
+  menuPage.style.display="none";
+  gamePage.style.display="flex";
+  if(isMobile)mobileControls.style.display="flex";
+  startGame();
+};
+
+function startGame(){
+  score=0;lives=1;gameOver=false;frame=0;
+  blocks=[];greenBlocks=[];blueBlocks=[];
+  baseBlockSpeed=4;speedMultiplier=1;
+  retryMsg.style.display="none";
+  restartBtn.style.display="none";
+  popup.style.display="none";
+  gameLoop();
+}
+function restartGame(){startGame();}
+function closePopup(){popup.style.display="none";}
+
+function drawPlayer(){
+  ctx.shadowColor="#ff8c00";ctx.shadowBlur=15;
+  ctx.fillStyle="#ff8c00";
+  ctx.fillRect(player.x,player.y,player.width,player.height);
+  ctx.shadowBlur=0;
+}
+
+function spawnBlocks(){
+  frame++;
+  if(frame%15===0){
+    let size=Math.random()*30+20;
+    blocks.push({x:Math.random()*(canvas.width-size),y:0,width:size,height:size});
+    if(Math.random()<0.025)greenBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
+    if(Math.random()<0.02)blueBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
+  }
+}
+
+function updateBlocks(){
+  let speed=baseBlockSpeed*speedMultiplier;
+  [...blocks,...greenBlocks,...blueBlocks].forEach(b=>b.y+=speed);
+  blocks=blocks.filter(b=>b.y<=canvas.height?true:(score++,false));
+  greenBlocks=greenBlocks.filter(b=>b.y<=canvas.height);
+  blueBlocks=blueBlocks.filter(b=>b.y<=canvas.height);
+}
+
+function detectCollision(){
+  blocks.forEach((b,i)=>{
+    if(player.x<b.x+b.width&&player.x+player.width>b.x&&player.y<b.y+b.height&&player.y+player.height>b.y){
+      blocks.splice(i,1);
+      lives--;
+      if(lives<=0){gameOver=true;retryMsg.style.display="block";restartBtn.style.display="inline-block";}
+    }
+  });
+  greenBlocks.forEach((g,i)=>{
+    if(player.x<g.x+g.width&&player.x+player.width>g.x&&player.y<g.y+g.height&&player.y+player.height>g.y){
+      greenBlocks.splice(i,1);
+      if(lives<10)lives++;
+    }
+  });
+  blueBlocks.forEach((bl,i)=>{
+    if(player.x<bl.x+bl.width&&player.x+player.width>bl.x&&player.y<bl.y+bl.height&&player.y+player.height>bl.y){
+      blueBlocks.splice(i,1);
+      lives+=3;if(lives>10)lives=10;
+      speedMultiplier*=2;setTimeout(()=>speedMultiplier/=2,5000);
+    }
+  });
+}
+
+function updatePlayer(){
+  if(isMobile)return;
+  if((keys["a"]||keys["arrowleft"])&&player.x>0)player.x-=player.speed;
+  if((keys["d"]||keys["arrowright"])&&player.x+player.width<canvas.width)player.x+=player.speed;
+}
+
+document.getElementById("leftBtn").ontouchstart=()=>moveLeft=true;
+document.getElementById("leftBtn").ontouchend=()=>moveLeft=false;
+document.getElementById("rightBtn").ontouchstart=()=>moveRight=true;
+document.getElementById("rightBtn").ontouchend=()=>moveRight=false;
+
+function handleMobileMovement(){
+  if(moveLeft&&player.x>0)player.x-=player.speed;
+  if(moveRight&&player.x+player.width<canvas.width)player.x+=player.speed;
+}
+
+function drawBlocks(){
+  ctx.shadowBlur=15;
+  ctx.fillStyle="red";blocks.forEach(b=>ctx.fillRect(b.x,b.y,b.width,b.height));
+  ctx.fillStyle="lime";greenBlocks.forEach(g=>ctx.fillRect(g.x,g.y,g.width,g.height));
+  ctx.fillStyle="cyan";blueBlocks.forEach(bl=>ctx.fillRect(bl.x,bl.y,bl.width,bl.height));
+  ctx.shadowBlur=0;
+}
+
+function drawScore(){
+  if(score>=maxScore){
+    scoreDisplay.innerHTML="MAX SCORE";
+    gameOver=true;
+    popupMsg.innerHTML=`🎉 Congratulations on Winning the Event!<br><br>Score: ${score}`;
+    popup.style.display="block";
+  } else {
+    scoreDisplay.innerText=`Score: ${score} | Lives: ${lives}`;
+  }
+}
+
+function gameLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawPlayer();drawBlocks();
+  if(isMobile)handleMobileMovement();else updatePlayer();
+  updateBlocks();spawnBlocks();detectCollision();drawScore();
+  if(!gameOver)requestAnimationFrame(gameLoop);
+  else restartBtn.style.display="inline-block";
+}
+</script>
+</body>
+</html>
