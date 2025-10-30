@@ -95,7 +95,6 @@
     box-shadow: 0 0 40px var(--neon);
   }
 
-  /* Game Layout */
   #gamePage {
     flex-direction: column;
     background: var(--bg);
@@ -291,6 +290,8 @@
 </div>
 
 <script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 const modePage=document.getElementById("modePage");
 const menuPage=document.getElementById("menuPage");
 const gamePage=document.getElementById("gamePage");
@@ -302,18 +303,19 @@ const backBtn=document.getElementById("backBtn");
 const gameBackBtn=document.getElementById("gameBackBtn");
 const restartBtn=document.getElementById("restartBtn");
 const scoreDisplay=document.getElementById("score");
-const canvas=document.getElementById("gameCanvas");
-const ctx=canvas.getContext("2d");
 const popup=document.getElementById("popup");
 const popupMsg=document.getElementById("popupMsg");
 
 let player={x:180,y:440,width:40,height:20,speed:5};
 let blocks=[],greenBlocks=[],blueBlocks=[];
-let keys={},score=0,lives=1,gameOver=false,frame=0;
+let keys={},score=0,lives=1,gameOver=false;
 let baseBlockSpeed=4,speedMultiplier=1;
-const maxScore=2000;let isMobile=false;
+const maxScore=2000;
+let isMobile=false;
 let moveLeft=false,moveRight=false;
 let lastTime=0;
+let spawnTimer=0;
+const spawnInterval=0.25; // seconds between spawns
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
@@ -331,12 +333,12 @@ playBtn.onclick=()=>{
 };
 
 function startGame(){
-  score=0;lives=1;gameOver=false;frame=0;
+  score=0;lives=1;gameOver=false;
   blocks=[];greenBlocks=[];blueBlocks=[];
   baseBlockSpeed=4;speedMultiplier=1;
   restartBtn.style.display="none";
   popup.style.display="none";
-  lastTime=0;
+  lastTime=0;spawnTimer=0;
   requestAnimationFrame(gameLoop);
 }
 function restartGame(){startGame();}
@@ -349,13 +351,16 @@ function drawPlayer(){
   ctx.shadowBlur=0;
 }
 
-function spawnBlocks(){
-  frame++;
-  if(frame%15===0){
-    let size=Math.random()*30+20;
+function spawnBlocks(delta){
+  spawnTimer += delta / 60; // convert delta frames to seconds (~1 at 60fps)
+  if (spawnTimer >= spawnInterval){
+    spawnTimer = 0;
+    let size = Math.random()*30+20;
     blocks.push({x:Math.random()*(canvas.width-size),y:0,width:size,height:size});
-    if(Math.random()<0.025)greenBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
-    if(Math.random()<0.02)blueBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
+    if(Math.random()<0.025)
+      greenBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
+    if(Math.random()<0.02)
+      blueBlocks.push({x:Math.random()*(canvas.width-20),y:0,width:20,height:20});
   }
 }
 
@@ -429,13 +434,16 @@ function drawScore(){
 function gameLoop(timestamp){
   if(!lastTime) lastTime=timestamp;
   let delta=(timestamp-lastTime)/16.6667;
-  if(delta>5) delta=1; // clamp large delta spikes (tab switch, lag)
+  if(delta>5) delta=1; // clamp large delta spikes
   lastTime=timestamp;
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawPlayer();drawBlocks();
   if(isMobile)handleMobileMovement(delta);else updatePlayer(delta);
-  updateBlocks(delta);spawnBlocks();detectCollision();drawScore();
+  updateBlocks(delta);
+  spawnBlocks(delta);
+  detectCollision();
+  drawScore();
   if(!gameOver)requestAnimationFrame(gameLoop);
   else restartBtn.style.display="inline-block";
 }
