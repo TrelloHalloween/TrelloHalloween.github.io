@@ -155,7 +155,6 @@
     margin-top: 15px;
   }
 
-  /* Winner Popup inside Canvas */
   #popup {
     display: none;
     position: absolute;
@@ -195,7 +194,6 @@
     box-shadow: 0 0 25px var(--neon);
   }
 
-  /* Mobile Controls */
   #mobileControls {
     display: none;
     justify-content: center;
@@ -315,6 +313,7 @@ let keys={},score=0,lives=1,gameOver=false,frame=0;
 let baseBlockSpeed=4,speedMultiplier=1;
 const maxScore=2000;let isMobile=false;
 let moveLeft=false,moveRight=false;
+let lastTime=0;
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
@@ -337,7 +336,8 @@ function startGame(){
   baseBlockSpeed=4;speedMultiplier=1;
   restartBtn.style.display="none";
   popup.style.display="none";
-  gameLoop();
+  lastTime=0;
+  requestAnimationFrame(gameLoop);
 }
 function restartGame(){startGame();}
 function closePopup(){popup.style.display="none";}
@@ -359,8 +359,8 @@ function spawnBlocks(){
   }
 }
 
-function updateBlocks(){
-  let speed=baseBlockSpeed*speedMultiplier;
+function updateBlocks(delta){
+  let speed=baseBlockSpeed*speedMultiplier*delta;
   [...blocks,...greenBlocks,...blueBlocks].forEach(b=>b.y+=speed);
   blocks=blocks.filter(b=>b.y<=canvas.height?true:(score++,false));
   greenBlocks=greenBlocks.filter(b=>b.y<=canvas.height);
@@ -390,10 +390,10 @@ function detectCollision(){
   });
 }
 
-function updatePlayer(){
-  if(isMobile)return;
-  if((keys["a"]||keys["arrowleft"])&&player.x>0)player.x-=player.speed;
-  if((keys["d"]||keys["arrowright"])&&player.x+player.width<canvas.width)player.x+=player.speed;
+function updatePlayer(delta){
+  const move=player.speed*delta;
+  if((keys["a"]||keys["arrowleft"])&&player.x>0)player.x-=move;
+  if((keys["d"]||keys["arrowright"])&&player.x+player.width<canvas.width)player.x+=move;
 }
 
 document.getElementById("leftBtn").ontouchstart=()=>moveLeft=true;
@@ -401,9 +401,10 @@ document.getElementById("leftBtn").ontouchend=()=>moveLeft=false;
 document.getElementById("rightBtn").ontouchstart=()=>moveRight=true;
 document.getElementById("rightBtn").ontouchend=()=>moveRight=false;
 
-function handleMobileMovement(){
-  if(moveLeft&&player.x>0)player.x-=player.speed;
-  if(moveRight&&player.x+player.width<canvas.width)player.x+=player.speed;
+function handleMobileMovement(delta){
+  const move=player.speed*delta;
+  if(moveLeft&&player.x>0)player.x-=move;
+  if(moveRight&&player.x+player.width<canvas.width)player.x+=move;
 }
 
 function drawBlocks(){
@@ -425,11 +426,16 @@ function drawScore(){
   }
 }
 
-function gameLoop(){
+function gameLoop(timestamp){
+  if(!lastTime) lastTime=timestamp;
+  let delta=(timestamp-lastTime)/16.6667;
+  if(delta>5) delta=1; // clamp large delta spikes (tab switch, lag)
+  lastTime=timestamp;
+
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawPlayer();drawBlocks();
-  if(isMobile)handleMobileMovement();else updatePlayer();
-  updateBlocks();spawnBlocks();detectCollision();drawScore();
+  if(isMobile)handleMobileMovement(delta);else updatePlayer(delta);
+  updateBlocks(delta);spawnBlocks();detectCollision();drawScore();
   if(!gameOver)requestAnimationFrame(gameLoop);
   else restartBtn.style.display="inline-block";
 }
